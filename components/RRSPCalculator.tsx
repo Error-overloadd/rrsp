@@ -4,11 +4,11 @@ import { calculateTaxForIncome, getTaxBracket } from '../data/taxRates';
 
 const RRSPCalculator = () => {
     const [formData, setFormData] = useState({
-        province: 'AB',
-        currentIncome: 70000,
-        projectedIncome: 90000,
-        rateOfReturn: 0.05,
-        unusedContribution: 15000,
+        province: '',
+        currentIncome: 0,
+        projectedIncome: 0,
+        rateOfReturn: 0,
+        unusedContribution: 0,
     });
 
     const [results, setResults] = useState({
@@ -26,10 +26,22 @@ const RRSPCalculator = () => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
+        
+        // 处理数字输入，移除前导零
+        const processedValue = name !== 'province' 
+            ? parseFloat(value) || 0  // 如果解析失败则返回0
+            : value;
+        
         setFormData({
             ...formData,
-            [name]: name === 'province' ? value : Number(value),
+            [name]: processedValue,
         });
+    };
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        if (e.target.value === '0') {
+            e.target.value = '';
+        }
     };
 
     const calculateResults = () => {
@@ -113,6 +125,7 @@ const RRSPCalculator = () => {
                                         name="currentIncome"
                                         value={formData.currentIncome}
                                         onChange={handleChange}
+                                        onFocus={handleFocus}
                                         className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                         placeholder="0.00"
                                     />
@@ -135,6 +148,7 @@ const RRSPCalculator = () => {
                                         name="projectedIncome"
                                         value={formData.projectedIncome}
                                         onChange={handleChange}
+                                        onFocus={handleFocus}
                                         className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                         placeholder="0.00"
                                     />
@@ -154,6 +168,7 @@ const RRSPCalculator = () => {
                                         name="rateOfReturn"
                                         value={formData.rateOfReturn}
                                         onChange={handleChange}
+                                        onFocus={handleFocus}
                                         className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                         placeholder="0.05"
                                         step="0.01"
@@ -180,6 +195,7 @@ const RRSPCalculator = () => {
                                         name="unusedContribution"
                                         value={formData.unusedContribution}
                                         onChange={handleChange}
+                                        onFocus={handleFocus}
                                         className="block w-full pl-7 pr-12 rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                                         placeholder="0.00"
                                     />
