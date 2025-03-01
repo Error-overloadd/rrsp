@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { calculateTaxForIncome, getTaxBracket } from '../data/taxRates';
+import { calculateTaxForIncome } from '../data/taxRates';
 import Payment from './payment';
 import CountdownTimer from './CountdownTimer';
 
