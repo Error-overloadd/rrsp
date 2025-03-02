@@ -1,9 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+
+import CheckoutPage from "./CheckoutPage";
+import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
+if (process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY === undefined) {
+  throw new Error("NEXT_PUBLIC_STRIPE_PUBLIC_KEY is not defined");
+}
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 interface PaymentProps {
   amount: number;
@@ -11,79 +15,9 @@ interface PaymentProps {
   onCancel: () => void;
 }
 
-const CheckoutForm = ({ onSuccess }: { onSuccess: () => void }) => {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [error, setError] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-
-    setProcessing(true);
-
-    const { error: submitError } = await elements.submit();
-    if (submitError) {
-      setError(submitError.message || "An error occurred");
-      setProcessing(false);
-      return;
-    }
-
-    const { clientSecret } = await fetch('/api/create-payment-intent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ amount: 299 }), // $2.99 in cents
-    }).then(r => r.json());
-
-    const { error: confirmError } = await stripe.confirmPayment({
-      elements,
-      clientSecret,
-      confirmParams: {
-        return_url: `${window.location.origin}/payment-success`,
-      },
-    });
-
-    if (confirmError) {
-      setError(confirmError.message || "An error occurred");
-    }
-    setProcessing(false);
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <PaymentElement />
-      {error && <div className="text-red-500 mt-2">{error}</div>}
-      <button
-        type="submit"
-        disabled={!stripe || processing}
-        className="w-full mt-4 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400"
-      >
-        {processing ? "Processing..." : "Pay $2.99"}
-      </button>
-    </form>
-  );
-};
-
 const Payment = ({ amount, onSuccess, onCancel }: PaymentProps) => {
-  const [clientSecret, setClientSecret] = useState("");
-
-  useEffect(() => {
-    fetch('/api/create-payment-intent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ amount: Math.round(amount * 100) }),
-    })
-      .then(res => res.json())
-      .then(data => setClientSecret(data.clientSecret));
-  }, [amount]);
-
-  if (!clientSecret) return <div>Loading...</div>;
-
+  const amountInCents = Math.round(amount * 100);
+  
   return (
     <div className="relative">
       <button
@@ -98,13 +32,12 @@ const Payment = ({ amount, onSuccess, onCancel }: PaymentProps) => {
       <Elements
         stripe={stripePromise}
         options={{
-          clientSecret,
-          appearance: {
-            theme: 'stripe',
-          },
+          mode: "payment",
+          amount: amountInCents,
+          currency: "cad",
         }}
       >
-        <CheckoutForm onSuccess={onSuccess} />
+        <CheckoutPage amount={amount} amountInCents={amountInCents}  />
       </Elements>
     </div>
   );

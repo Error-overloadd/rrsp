@@ -37,6 +37,7 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
     const [showTip, setShowTip] = useState(false);
     const [showTimer, setShowTimer] = useState(false);
 
+
     useEffect(() => {
         const isPaidStatus = localStorage.getItem('isPaid');
         const expiryTime = localStorage.getItem('paidExpiry');
@@ -49,7 +50,6 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
                 setIsPaid(true);
                 setShowTimer(true);
             } else {
-                // 清除过期的支付状态
                 localStorage.removeItem('isPaid');
                 localStorage.removeItem('paidExpiry');
                 setIsPaid(false);
@@ -96,7 +96,11 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
         setIsPaid(true);
         setShowTip(false);
         
-        // 获取并设置用户之前选择的年份
+        // 设置3分钟后过期
+        const expiryTime = new Date().getTime() + (3 * 60 * 1000);
+        localStorage.setItem('isPaid', 'true');
+        localStorage.setItem('paidExpiry', expiryTime.toString());
+        
         const pendingYear = localStorage.getItem('pendingYear') || '2';
         setFormData({ ...formData, projectionYear: pendingYear });
         localStorage.removeItem('pendingYear');
@@ -174,9 +178,27 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
         }
     };
 
-    const handleUnlock = () => {
-        setShowPayment(true);
-        setShowTip(false);
+    const handleUnlock = async () => {
+        try {
+           
+            setShowPayment(true);
+            const response = await fetch('/api/create-payment-intent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ amount: 299 }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            // 处理支付逻辑
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 
     return (
@@ -343,18 +365,7 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
                 </div>
             )}
 
-            {/* 支付窗口 */}
-            {showPayment && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
-                        <Payment 
-                            amount={2.99} 
-                            onSuccess={handlePaymentSuccess}
-                            onCancel={() => setShowPayment(false)}
-                        />
-                    </div>
-                </div>
-            )}
+          
 
             {/* 添加倒计时器 */}
             {showTimer && <CountdownTimer onExpire={handleTimerExpire} />}
@@ -455,6 +466,23 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
                     </p>
                 </div>
             </div>
+
+            {/* Pro Feature Modal */}
+            
+
+          
+            {/* Payment Modal */}
+            {showPayment && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
+                        <Payment 
+                            amount={2.99} 
+                            onSuccess={handlePaymentSuccess}
+                            onCancel={() => setShowPayment(false)}
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
