@@ -180,8 +180,8 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
 
     const handleUnlock = async () => {
         try {
-           
             setShowPayment(true);
+            console.log("Sending payment intent request");
             const response = await fetch('/api/create-payment-intent', {
                 method: 'POST',
                 headers: {
@@ -190,14 +190,20 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
                 body: JSON.stringify({ amount: 299 }),
             });
 
+            console.log("Response status:", response.status);
+            
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                const errorText = await response.text();
+                console.error("Error response:", errorText);
+                throw new Error(`Network response was not ok: ${errorText}`);
             }
 
             const data = await response.json();
-            // 处理支付逻辑
+            console.log("Payment intent created:", data);
+            // 处理支付逻辑 - 确保您的 Payment 组件正确使用 clientSecret
         } catch (error) {
             console.error('Error:', error);
+            alert("Payment processing error: " + error.message);
         }
     };
 
