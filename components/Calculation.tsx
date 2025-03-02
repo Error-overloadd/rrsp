@@ -178,6 +178,11 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
         }
     };
 
+    const handleUnlock = () => {
+        setShowPayment(true);
+        setShowTip(false);
+    };
+
     return (
         <div className="max-w-4xl mx-auto">
             {/* 输入表单部分 */}
@@ -333,10 +338,7 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
                         <p className="mb-2">Currently you can only calculate for 1 year.</p>
                         <p className="mb-4">Unlock premium to calculate future year projections!</p>
                         <button
-                            onClick={() => {
-                                setShowTip(false);
-                                setShowPayment(true);
-                            }}
+                            onClick={handleUnlock}
                             className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
                         >
                             Unlock Now for $2.99
@@ -345,38 +347,7 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
                 </div>
             )}
 
-            {/* 支付窗口的样式 */}
-            <div className={`
-                fixed top-10 left-1/2 
-                bg-white rounded-xl shadow-lg border border-gray-200 
-                p-6 z-10 w-96 max-w-[90%]
-                ${showPayment ? 'block' : 'hidden'}
-            `}>
-                <div className="text-center">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                        Upgrade to Pro
-                    </h3>
-                    <p className="text-gray-600 mb-6">
-                        To view projections beyond 1 year, please upgrade to our Pro version.
-                    </p>
-                    <div className="flex justify-center space-x-4">
-                        <button
-                            onClick={() => setShowPayment(false)}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handlePaymentSuccess}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                        >
-                            Upgrade Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* 背景遮罩 */}
+            {/* 支付窗口 */}
             {showPayment && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 max-w-md w-full m-4">
