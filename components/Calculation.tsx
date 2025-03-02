@@ -96,11 +96,7 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
         setIsPaid(true);
         setShowTip(false);
         
-        // 设置3分钟后过期
-        const expiryTime = new Date().getTime() + (3 * 60 * 1000);
-        localStorage.setItem('isPaid', 'true');
-        localStorage.setItem('paidExpiry', expiryTime.toString());
-        
+        // 获取并设置用户之前选择的年份
         const pendingYear = localStorage.getItem('pendingYear') || '2';
         setFormData({ ...formData, projectionYear: pendingYear });
         localStorage.removeItem('pendingYear');
