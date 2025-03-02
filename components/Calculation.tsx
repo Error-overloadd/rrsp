@@ -203,7 +203,9 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
             // 处理支付逻辑 - 确保您的 Payment 组件正确使用 clientSecret
         } catch (error) {
             console.error('Error:', error);
-            alert("Payment processing error: " + error.message);
+            // 修复类型错误 - 添加类型检查
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            alert("Payment processing error: " + errorMessage);
         }
     };
 
