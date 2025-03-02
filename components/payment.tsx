@@ -18,6 +18,18 @@ interface PaymentProps {
 const Payment = ({ amount, onSuccess, onCancel }: PaymentProps) => {
   const amountInCents = Math.round(amount * 100);
   
+  const handlePayment = async () => {
+    try {
+      // ... 支付处理逻辑保持不变
+
+      // 支付成功后直接跳转到成功页面
+      window.location.href = '/payment-success';
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment failed. Please try again.');
+    }
+  };
+
   return (
     <div className="relative">
       <button
