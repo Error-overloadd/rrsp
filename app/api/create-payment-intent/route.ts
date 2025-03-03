@@ -15,9 +15,7 @@ if (!stripeSecretKey) {
   console.error("Missing Stripe Secret Key - API will fail!");
 }
 
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: '2025-02-24.acacia',
-});
+const stripe = new Stripe(stripeSecretKey);
 
 export async function POST(request: NextRequest) {
   console.log("Payment intent request received");
