@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { calculateTaxForIncome } from '../data/taxRates';
 import Payment from './payment';
 import CountdownTimer from './CountdownTimer';
+import Result from './Result';
 
 interface CalculationProps {
     formData: {
@@ -180,8 +181,8 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
 
     const handleUnlock = async () => {
         try {
-           
             setShowPayment(true);
+            console.log("Sending payment intent request");
             const response = await fetch('/api/create-payment-intent', {
                 method: 'POST',
                 headers: {
@@ -190,14 +191,22 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
                 body: JSON.stringify({ amount: 299 }),
             });
 
+            console.log("Response status:", response.status);
+            
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                const errorText = await response.text();
+                console.error("Error response:", errorText);
+                throw new Error(`Network response was not ok: ${errorText}`);
             }
 
             const data = await response.json();
-            // 处理支付逻辑
+            console.log("Payment intent created:", data);
+            // 处理支付逻辑 - 确保您的 Payment 组件正确使用 clientSecret
         } catch (error) {
             console.error('Error:', error);
+            // 修复类型错误 - 添加类型检查
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            alert("Payment processing error: " + errorMessage);
         }
     };
 
@@ -370,107 +379,9 @@ const Calculation = ({ formData, setFormData }: CalculationProps) => {
             {/* 添加倒计时器 */}
             {showTimer && <CountdownTimer onExpire={handleTimerExpire} />}
 
-            {/* 计算结果部分 */}
-            {showResults && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                    {/* 左侧：当前年度分析 */}
-                    <div className="bg-white/90 p-6 rounded-lg shadow-lg border border-blue-50">
-                        <h2 className="text-2xl font-semibold mb-6 text-gray-800">Current Year Analysis</h2>
-                        
-                        <div className="space-y-4">
-                            <div className="bg-gray-50 p-4 rounded">
-                                <p className="text-black">Tax Without RRSP</p>
-                                <p className="text-2xl text-black font-bold">${results.currentYearTaxWithoutRRSP.toFixed(2)}</p>
-                            </div>
+            {/* 使用新的 Result 组件 */}
+            {showResults && <Result results={results} projectionYear={formData.projectionYear} />}
 
-                            <div className="bg-gray-50 p-4 rounded">
-                                <p className="text-black">Tax With RRSP</p>
-                                <p className="text-2xl text-black font-bold">${results.currentYearTaxWithRRSP.toFixed(2)}</p>
-                            </div>
-
-                            <div className="bg-green-50 p-4 rounded">
-                                <p className="text-green-600">Tax Savings</p>
-                                <p className="text-2xl font-bold text-green-600">${results.currentYearTaxSaving.toFixed(2)}</p>
-                            </div>
-
-                            <div className="bg-blue-50 p-4 rounded">
-                                <p className="text-blue-600">Effective Tax Rate</p>
-                                <p className="text-2xl font-bold text-blue-600">{results.effectiveTaxRate.toFixed(2)}%</p>
-                            </div>
-
-                            <div className="bg-purple-50 p-4 rounded">
-                                <p className="text-purple-600">Pre-tax Investment Income</p>
-                                <p className="text-2xl font-bold text-purple-600">${results.preInvestmentIncome.toFixed(2)}</p>
-                            </div>
-
-                            <div className="bg-purple-50 p-4 rounded">
-                                <p className="text-purple-600">After-tax Investment Income</p>
-                                <p className="text-2xl font-bold text-purple-600">${results.afterInvestmentIncome.toFixed(2)}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 右侧：未来预测 */}
-                    <div className="bg-white/90 p-6 rounded-lg shadow-lg border border-blue-50">
-                        <h2 className="text-2xl font-semibold mb-6 text-gray-800">Next Year Projection</h2>
-                        
-                        <div className="space-y-4">
-                            <div className="bg-gray-50 p-4 rounded">
-                                <p className="text-gray-600">Projected Tax Without RRSP</p>
-                                <p className="text-2xl text-black font-bold">${results.projectedYearTaxWithoutRRSP.toFixed(2)}</p>
-                            </div>
-
-                            <div className="bg-gray-50 p-4 rounded">
-                                <p className="text-gray-600">Projected Tax With RRSP</p>
-                                <p className="text-2xl text-black font-bold">${results.projectedYearTaxWithRRSP.toFixed(2)}</p>
-                            </div>
-
-                            <div className="bg-green-50 p-4 rounded">
-                                <p className="text-green-600">Projected Tax Savings</p>
-                                <p className="text-2xl font-bold text-green-600">${results.projectedYearTaxSaving.toFixed(2)}</p>
-                            </div>
-
-                            <div className="bg-blue-50 p-4 rounded">
-                                <p className="text-blue-600">Projected Effective Rate</p>
-                                <p className="text-2xl font-bold text-blue-600">{results.projectedEffectiveRate.toFixed(2)}%</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Summary Section */}
-            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-6">Summary</h2>
-                
-                {/* Current Year Benefits */}
-                <div className="bg-blue-50/50 rounded-xl p-6 mb-6 border border-blue-100">
-                    <h3 className="text-xl text-blue-800 font-semibold mb-6">Current Year Benefits</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <p className="text-blue-700 text-sm mb-2">Tax Savings</p>
-                            <p className="text-3xl font-bold text-blue-800">
-                                ${results.currentYearTaxSaving.toFixed(2)}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-blue-700 text-sm mb-2">Pre-tax Investment Income</p>
-                            <p className="text-3xl font-bold text-blue-800">
-                                ${results.preInvestmentIncome.toFixed(2)}
-                            </p>
-                        </div>
-                    </div>
-                    <p className="text-gray-600 text-sm mt-4">
-                        By claiming RRSP deduction in the current year, you will save ${results.currentYearTaxSaving.toFixed(2)} of taxes this year. 
-                        You are also projected to earn an additional ${results.preInvestmentIncome.toFixed(2)} pre-tax investment income from tax saving.
-                    </p>
-                </div>
-            </div>
-
-            {/* Pro Feature Modal */}
-            
-
-          
             {/* Payment Modal */}
             {showPayment && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
